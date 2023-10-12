@@ -2,39 +2,14 @@ package org.prgms;
 
 import java.util.Optional;
 import java.util.UUID;
+import org.prgms.order.Order;
+import org.prgms.voucher.Voucher;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@ComponentScan(basePackages = {"org.prgms.order", "org.prgms.voucher"})
+//@ComponentScan(basePackageClasses = {Order.class, Voucher.class})
 public class AppConfiguration {
-
-    @Bean
-    public VoucherRepository voucherRepository(){
-        return new VoucherRepository() {
-            @Override
-            public Optional<Voucher> findById(UUID voucherId) {
-                return Optional.empty();
-            }
-        };
-    }
-
-    @Bean
-    public OrderRepository orderRepository(){
-        return new OrderRepository() {
-            @Override
-            public void insert(Order order) {
-
-            }
-        };
-    }
-
-    @Bean
-    public VoucherService voucherService(VoucherRepository voucherRepository){
-        return new VoucherService(voucherRepository);
-    }
-
-    @Bean
-    public OrderService orderService(VoucherService voucherService, OrderRepository orderRepository){
-        return new OrderService(voucherService, orderRepository);
-    }
 }
