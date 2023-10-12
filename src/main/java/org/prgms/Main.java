@@ -38,5 +38,6 @@ public class Main {
         Assert.isTrue(order.totalAmount() == 90L,
             MessageFormat.format("totalAmount {0} is not 100L", order.totalAmount()));
 
+        applicationContext.close();
     }
 }
