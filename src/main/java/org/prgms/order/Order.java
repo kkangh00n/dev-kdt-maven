@@ -1,8 +1,9 @@
-package org.prgms;
+package org.prgms.order;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.prgms.voucher.Voucher;
 
 public class Order {
 
@@ -17,6 +18,10 @@ public class Order {
         this.customerId = customerId;
         this.orderItems = orderItems;
         this.voucher = Optional.empty();
+    }
+
+    public UUID getOrderId() {
+        return orderId;
     }
 
     public Order(UUID orderId, UUID customerId, List<OrderItem> orderItems, Voucher voucher) {
