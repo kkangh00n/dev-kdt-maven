@@ -8,10 +8,12 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 
 @Configuration
 @ComponentScan(basePackages = {"org.prgms.order", "org.prgms.voucher"})
 //@ComponentScan(basePackageClasses = {Order.class, Voucher.class})
+@PropertySource("application.properties")
 public class AppConfiguration {
 
     @Bean(initMethod = "init")
