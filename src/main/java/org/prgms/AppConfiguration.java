@@ -2,9 +2,13 @@ package org.prgms;
 
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-public class OrderContext {
+@Configuration
+public class AppConfiguration {
 
+    @Bean
     public VoucherRepository voucherRepository(){
         return new VoucherRepository() {
             @Override
@@ -14,6 +18,7 @@ public class OrderContext {
         };
     }
 
+    @Bean
     public OrderRepository orderRepository(){
         return new OrderRepository() {
             @Override
@@ -23,10 +28,12 @@ public class OrderContext {
         };
     }
 
+    @Bean
     public VoucherService voucherService(){
         return new VoucherService(voucherRepository());
     }
 
+    @Bean
     public OrderService orderService(){
         return new OrderService(voucherService(), orderRepository());
     }

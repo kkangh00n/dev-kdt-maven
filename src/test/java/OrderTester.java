@@ -1,22 +1,23 @@
 import static org.assertj.core.api.Assertions.*;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
-import org.prgms.FixedAmountVoucher;
 import org.prgms.Order;
-import org.prgms.OrderContext;
+import org.prgms.AppConfiguration;
 import org.prgms.OrderItem;
 import org.prgms.OrderService;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 public class OrderTester {
 
     @Test
     void test() {
+        AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(
+            AppConfiguration.class);
+
         UUID customerId = UUID.randomUUID();
-        OrderContext orderContext = new OrderContext();
-        OrderService orderService = orderContext.orderService();
+        OrderService orderService = applicationContext.getBean(OrderService.class);
         Order order = orderService.createOrder(customerId, new ArrayList<>() {{
             add(new OrderItem(UUID.randomUUID(), 100L, 1));
         }});

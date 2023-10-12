@@ -13,7 +13,6 @@ public class OrderService {
     }
 
     public Order createOrder(UUID customerId, List<OrderItem> orderItems){
-        Voucher voucher = voucherService.getVoucher(voucherId);
         Order order = new Order(UUID.randomUUID(), customerId, orderItems);
         orderRepository.insert(order);
 
