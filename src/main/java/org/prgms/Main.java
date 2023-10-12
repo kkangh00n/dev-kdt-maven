@@ -9,6 +9,7 @@ import org.prgms.order.OrderService;
 import org.prgms.voucher.FixedAmountVoucher;
 import org.prgms.voucher.Voucher;
 import org.prgms.voucher.VoucherRepository;
+import org.springframework.beans.factory.annotation.BeanFactoryAnnotationUtils;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.util.Assert;
 
@@ -19,8 +20,9 @@ public class Main {
             AppConfiguration.class);
 
         UUID customerId = UUID.randomUUID();
+        VoucherRepository voucherRepository = BeanFactoryAnnotationUtils.qualifiedBeanOfType(
+            applicationContext.getBeanFactory(), VoucherRepository.class, "memory");
 
-        VoucherRepository voucherRepository = applicationContext.getBean(VoucherRepository.class);
         Voucher voucher = voucherRepository.insert(new FixedAmountVoucher(UUID.randomUUID(), 10L));
 
         OrderService orderService = applicationContext.getBean(OrderService.class);
