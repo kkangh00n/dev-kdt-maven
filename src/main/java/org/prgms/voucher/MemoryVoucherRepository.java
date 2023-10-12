@@ -9,8 +9,8 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 
 @Repository
-//@Qualifier("memory")
-@Primary
+@Qualifier("memory")
+//@Primary
 public class MemoryVoucherRepository implements VoucherRepository {
     private final Map<UUID, Voucher> storage = new ConcurrentHashMap<>();
 

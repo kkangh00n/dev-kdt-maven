@@ -1,13 +1,14 @@
 package org.prgms.voucher;
 
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Service
 public class VoucherService {
     private final VoucherRepository voucherRepository;
 
-    public VoucherService(VoucherRepository voucherRepository) {
+    public VoucherService(@Qualifier("memory") VoucherRepository voucherRepository) {
         this.voucherRepository = voucherRepository;
     }
 
