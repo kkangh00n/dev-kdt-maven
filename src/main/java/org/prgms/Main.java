@@ -22,7 +22,12 @@ public class Main {
         UUID customerId = UUID.randomUUID();
         VoucherRepository voucherRepository = BeanFactoryAnnotationUtils.qualifiedBeanOfType(
             applicationContext.getBeanFactory(), VoucherRepository.class, "memory");
+        VoucherRepository voucherRepository2 = BeanFactoryAnnotationUtils.qualifiedBeanOfType(
+            applicationContext.getBeanFactory(), VoucherRepository.class, "memory");
 
+        System.out.println(MessageFormat.format("voucherRepository {0}", voucherRepository));
+        System.out.println(MessageFormat.format("voucherRepository2 {0}", voucherRepository2));
+        System.out.println(voucherRepository==voucherRepository2);
         Voucher voucher = voucherRepository.insert(new FixedAmountVoucher(UUID.randomUUID(), 10L));
 
         OrderService orderService = applicationContext.getBean(OrderService.class);
