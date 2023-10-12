@@ -1,8 +1,12 @@
-package org.prgms;
+package org.prgms.order;
 
 import java.util.List;
 import java.util.UUID;
+import org.prgms.voucher.Voucher;
+import org.prgms.voucher.VoucherService;
+import org.springframework.stereotype.Service;
 
+@Service
 public class OrderService {
     private final VoucherService voucherService;
     private final OrderRepository orderRepository;
@@ -14,9 +18,7 @@ public class OrderService {
 
     public Order createOrder(UUID customerId, List<OrderItem> orderItems){
         Order order = new Order(UUID.randomUUID(), customerId, orderItems);
-        orderRepository.insert(order);
-
-        return order;
+        return orderRepository.insert(order);
     }
 
     public Order createOrder(UUID customerId, List<OrderItem> orderItems, UUID voucherId){
