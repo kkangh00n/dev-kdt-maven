@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@Profile("local")
+@Profile({"local", "default"})
 //@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 //@Primary
 public class MemoryVoucherRepository implements VoucherRepository, InitializingBean, DisposableBean {
