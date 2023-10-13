@@ -1,12 +1,43 @@
+##yaml 환경에 상관없이 실행
+#servers:
+#  - dev.bar.com
+#  - foo.bar.com
+#
+#---
+##local 환경일 때
+#spring.config.activate.on-profile: local
+#kdt:
+#  version: "v1.0"
+#  minimum-order-amount: 1
+#  support-vendors:
+#    - a
+#    - b
+#    - c
+#    - d
+#  description: |-   #'-'가 있다면 마지막 개행 포함
+#    line 1 hello world
+#    line 2 xxxx
+#    line 3
+#
+#---
+##dev 환경일 떄
+#spring.config.activate.on-profile: dev
+#kdt:
+#  version: "v1.0"
+#  minimum-order-amount: 1
+#  support-vendors:
+#    - dev-a
+#    - dev-b
+#  description: |-   #'-'가 있다면 마지막 개행 포함
+#    dev
+#    dev
+
 kdt:
   version: "v1.0"
   minimum-order-amount: 1
   support-vendors:
-    - a
-    - b
-    - c
-    - d
+    - default
   description: |-   #'-'가 있다면 마지막 개행 포함
-    line 1 hello world
-    line 2 xxxx
-    line 3
+    default line 1 hello world
+    default line 2 xxxx
+    default line 3
