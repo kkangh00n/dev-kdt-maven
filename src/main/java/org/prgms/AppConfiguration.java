@@ -1,10 +1,8 @@
 package org.prgms;
 
-import java.util.Optional;
-import java.util.UUID;
-import org.prgms.order.Order;
-import org.prgms.voucher.Voucher;
+import org.prgms.configuration.YamlPropertiesFactory;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -13,7 +11,7 @@ import org.springframework.context.annotation.PropertySource;
 @Configuration
 @ComponentScan(basePackages = {"org.prgms.order", "org.prgms.voucher"})
 //@ComponentScan(basePackageClasses = {Order.class, Voucher.class})
-@PropertySource("application.properties")
+@PropertySource(value = "application.yaml", factory = YamlPropertiesFactory.class)
 public class AppConfiguration {
 
     @Bean(initMethod = "init")
