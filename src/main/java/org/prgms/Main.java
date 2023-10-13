@@ -9,6 +9,7 @@ import org.prgms.order.OrderItem;
 import org.prgms.order.OrderProperties;
 import org.prgms.order.OrderService;
 import org.prgms.voucher.FixedAmountVoucher;
+import org.prgms.voucher.JdbcVoucherRepository;
 import org.prgms.voucher.Voucher;
 import org.prgms.voucher.VoucherRepository;
 import org.springframework.beans.factory.annotation.BeanFactoryAnnotationUtils;
@@ -19,10 +20,12 @@ import org.springframework.util.Assert;
 public class Main {
 
     public static void main(String[] args) {
-        AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(
-            AppConfiguration.class);
+        AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext();
+        applicationContext.register(AppConfiguration.class);
+        ConfigurableEnvironment environment = applicationContext.getEnvironment();
+        environment.setActiveProfiles("dev");
+        applicationContext.refresh();
 
-//        ConfigurableEnvironment environment = applicationContext.getEnvironment();
 //        String version = environment.getProperty("kdt.version");
 //        Integer minimumOrderAmount = environment.getProperty("kdt.minimum-order-amount", Integer.class);
 //        List<String> supportVendors = environment.getProperty("kdt.support-vendors", List.class);
@@ -32,25 +35,20 @@ public class Main {
 //        System.out.println(MessageFormat.format("supportVendors -> {0}", supportVendors));
 //        System.out.println(MessageFormat.format("description -> {0}", description));
 
-        OrderProperties orderProperties = applicationContext.getBean(OrderProperties.class);
-        System.out.println(MessageFormat.format("version -> {0}", orderProperties.getVersion()));
-        System.out.println(MessageFormat.format("minimumOrderAmount -> {0}", orderProperties.getMinimumOrderAmount()));
-        System.out.println(MessageFormat.format("supportVendors -> {0}", orderProperties.getSupportVendors()));
-        System.out.println(MessageFormat.format("description -> {0}", orderProperties.getDescription()));
+//        OrderProperties orderProperties = applicationContext.getBean(OrderProperties.class);
+//        System.out.println(MessageFormat.format("version -> {0}", orderProperties.getVersion()));
+//        System.out.println(MessageFormat.format("minimumOrderAmount -> {0}", orderProperties.getMinimumOrderAmount()));
+//        System.out.println(MessageFormat.format("supportVendors -> {0}", orderProperties.getSupportVendors()));
+//        System.out.println(MessageFormat.format("description -> {0}", orderProperties.getDescription()));
 
         UUID customerId = UUID.randomUUID();
-        VoucherRepository voucherRepository = BeanFactoryAnnotationUtils.qualifiedBeanOfType(
-            applicationContext.getBeanFactory(), VoucherRepository.class, "memory");
-        VoucherRepository voucherRepository2 = BeanFactoryAnnotationUtils.qualifiedBeanOfType(
-            applicationContext.getBeanFactory(), VoucherRepository.class, "memory");
-
-        System.out.println(MessageFormat.format("voucherRepository {0}", voucherRepository));
-        System.out.println(MessageFormat.format("voucherRepository2 {0}", voucherRepository2));
-        System.out.println(voucherRepository==voucherRepository2);
+        VoucherRepository voucherRepository = applicationContext.getBean(VoucherRepository.class);
         Voucher voucher = voucherRepository.insert(new FixedAmountVoucher(UUID.randomUUID(), 10L));
 
+        System.out.println(MessageFormat.format("is Jdbc Repo -> {0}", voucherRepository instanceof JdbcVoucherRepository));
+
         OrderService orderService = applicationContext.getBean(OrderService.class);
-        Order order = orderService.createOrder(customerId, new ArrayList<>() {{
+        Order order = orderService.createOrder(customerId, new ArrayList<OrderItem>() {{
             add(new OrderItem(UUID.randomUUID(), 100L, 1));
         }}, voucher.getVoucherId());
 
