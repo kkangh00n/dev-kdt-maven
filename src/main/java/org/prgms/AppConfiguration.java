@@ -12,6 +12,7 @@ import org.springframework.context.annotation.PropertySource;
 @ComponentScan(basePackages = {"org.prgms.order", "org.prgms.voucher"})
 //@ComponentScan(basePackageClasses = {Order.class, Voucher.class})
 @PropertySource(value = "application.yaml", factory = YamlPropertiesFactory.class)
+@EnableConfigurationProperties
 public class AppConfiguration {
 
     @Bean(initMethod = "init")
