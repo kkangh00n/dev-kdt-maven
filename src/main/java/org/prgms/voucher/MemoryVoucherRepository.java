@@ -11,15 +11,15 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@Qualifier("memory")
+@Profile("local")
 //@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 //@Primary
-public class MemoryVoucherRepository implements VoucherRepository, InitializingBean,
-    DisposableBean {
+public class MemoryVoucherRepository implements VoucherRepository, InitializingBean, DisposableBean {
     private final Map<UUID, Voucher> storage = new ConcurrentHashMap<>();
 
     @Override
