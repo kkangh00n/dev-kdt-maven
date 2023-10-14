@@ -22,6 +22,8 @@ import org.prgms.voucher.FixedAmountVoucher;
 import org.prgms.voucher.JdbcVoucherRepository;
 import org.prgms.voucher.Voucher;
 import org.prgms.voucher.VoucherRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.BeanFactoryAnnotationUtils;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -29,6 +31,9 @@ import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
 
 public class Main {
+
+    //이 Logger는 해당 클래스에 단 하나
+    private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
     public static void main(String[] args) throws IOException {
         AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext();
@@ -48,31 +53,32 @@ public class Main {
 //        System.out.println(MessageFormat.format("description -> {0}", description));
 
         OrderProperties orderProperties = applicationContext.getBean(OrderProperties.class);
-//        System.out.println(MessageFormat.format("version -> {0}", orderProperties.getVersion()));
-//        System.out.println(MessageFormat.format("minimumOrderAmount -> {0}", orderProperties.getMinimumOrderAmount()));
-//        System.out.println(MessageFormat.format("supportVendors -> {0}", orderProperties.getSupportVendors()));
-//        System.out.println(MessageFormat.format("description -> {0}", orderProperties.getDescription()));
+        logger.info("logger name -> {} {} {}", logger.getName(), 2, 3);
+        logger.info("version -> {}", orderProperties.getVersion());
+        logger.info("minimumOrderAmount -> {}", orderProperties.getMinimumOrderAmount());
+        logger.info("supportVendors -> {}", orderProperties.getSupportVendors());
+        logger.info("description -> {}", orderProperties.getDescription());
 
 
-        Resource resource = applicationContext.getResource("application.yaml");
-        Resource resource2 = applicationContext.getResource("file:sample.txt");
+//        Resource resource = applicationContext.getResource("application.yaml");
+//        Resource resource2 = applicationContext.getResource("file:sample.txt");
+//
+//        System.out.println("resource = " + resource.getClass().getCanonicalName());
+//        File file = resource.getFile();
+//        List<String> strings = Files.readAllLines(file.toPath());
+//        System.out.println(strings.stream().reduce("", (a,b) -> a+"\n"+b));
 
-        System.out.println("resource = " + resource2.getClass().getCanonicalName());
-        File file = resource2.getFile();
-        List<String> strings = Files.readAllLines(file.toPath());
-        System.out.println(strings.stream().reduce("", (a,b) -> a+"\n"+b));
 
 
-
-        Resource resource3 = applicationContext.getResource("https://stackoverflow.com/");
-
-        InputStream inputStream = resource3.getURL().openStream();
-        ReadableByteChannel readableByteChannel = Channels.newChannel(inputStream);
-        BufferedReader bufferedReader = new BufferedReader(
-            Channels.newReader(readableByteChannel, StandardCharsets.UTF_8));
-        Stream<String> lines = bufferedReader.lines();
-        String content = lines.collect(Collectors.joining("\n"));
-        System.out.println(content);
+//        Resource resource3 = applicationContext.getResource("https://stackoverflow.com/");
+//
+//        InputStream inputStream = resource3.getURL().openStream();
+//        ReadableByteChannel readableByteChannel = Channels.newChannel(inputStream);
+//        BufferedReader bufferedReader = new BufferedReader(
+//            Channels.newReader(readableByteChannel, StandardCharsets.UTF_8));
+//        Stream<String> lines = bufferedReader.lines();
+//        String content = lines.collect(Collectors.joining("\n"));
+//        System.out.println(content);
 
 
 
