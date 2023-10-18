@@ -51,4 +51,15 @@ class FixedAmountVoucherTest {
         FixedAmountVoucher fixedAmountVoucher = new FixedAmountVoucher(UUID.randomUUID(), 1000);
         assertEquals(0, fixedAmountVoucher.discount(900));
     }
+
+    @Test
+    @DisplayName("유효한 할인 금액으로만 생성할 수있다")
+    @Disabled
+    void testVoucherCreation() {
+        assertAll("FixedAmountVoucher creation",
+            () -> assertThrows(IllegalArgumentException.class, () -> new FixedAmountVoucher(UUID.randomUUID(), 0)),
+            () -> assertThrows(IllegalArgumentException.class, () -> new FixedAmountVoucher(UUID.randomUUID(), -100)),
+            () -> assertThrows(IllegalArgumentException.class, () -> new FixedAmountVoucher(UUID.randomUUID(), 10000000))
+        );
+    }
 }
