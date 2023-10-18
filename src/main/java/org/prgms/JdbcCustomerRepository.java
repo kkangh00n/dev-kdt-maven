@@ -2,6 +2,7 @@ package org.prgms;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -17,20 +18,23 @@ public class JdbcCustomerRepository {
     private static final Logger logger = LoggerFactory.getLogger(JdbcCustomerRepository.class);
 
     public List<String> findNames(String name){
-        String SELECT_SQL = "select * from customers WHERE name= '%s'". formatted(name);
+        String SELECT_SQL = "select * from customers WHERE name = ?";
         List<String> names = new ArrayList<>();
 
         try(        //DB 커넥션은 많은 resource를 차지
             Connection connection = DriverManager.getConnection("jdbc:mysql://localhost/order_mgmt", "root", "0000");
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(SELECT_SQL);
+            PreparedStatement statement = connection.prepareStatement(SELECT_SQL);          //prepareStatement -> SQL injection 방지
         ) {
-            while(resultSet.next()){
-                String customerName = resultSet.getString("name");
-                UUID customerId = UUID.nameUUIDFromBytes(resultSet.getBytes("customer_id"));
-                LocalDateTime createAt = resultSet.getTimestamp("create_at").toLocalDateTime();
-                logger.info("customer id -> {}, name -> {}, created_at -> {}", customerId, name, createAt);
-                names.add(customerName);
+            //sql에 파라미터 전달
+            statement.setString(1, name);
+            try(ResultSet resultSet = statement.executeQuery()){
+                while(resultSet.next()){
+                    String customerName = resultSet.getString("name");
+                    UUID customerId = UUID.nameUUIDFromBytes(resultSet.getBytes("customer_id"));
+                    LocalDateTime createAt = resultSet.getTimestamp("create_at").toLocalDateTime();
+                    logger.info("customer id -> {}, name -> {}, created_at -> {}", customerId, name, createAt);
+                    names.add(customerName);
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -41,7 +45,7 @@ public class JdbcCustomerRepository {
     }
 
     public static void main(String[] args){
-        List<String> names = new JdbcCustomerRepository().findNames("tester01' OR 'a'='a");         //SQL injection -> 누군가 악의적으로 sql을 조작 -> 보안에 취약
+        List<String> names = new JdbcCustomerRepository().findNames("tester01");
         names.forEach(v -> logger.info("Found name : {}", v));
     }
 }
