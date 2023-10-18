@@ -24,6 +24,22 @@ public class Order {
         return orderId;
     }
 
+    public UUID getCustomerId() {
+        return customerId;
+    }
+
+    public List<OrderItem> getOrderItems() {
+        return orderItems;
+    }
+
+    public Optional<Voucher> getVoucher() {
+        return voucher;
+    }
+
+    public OrderStatus getOrderStatus() {
+        return orderStatus;
+    }
+
     public Order(UUID orderId, UUID customerId, List<OrderItem> orderItems, Voucher voucher) {
         this.orderId = orderId;
         this.customerId = customerId;
