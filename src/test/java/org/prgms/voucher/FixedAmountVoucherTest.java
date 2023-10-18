@@ -43,4 +43,12 @@ class FixedAmountVoucherTest {
     void testWithMinus() {
         assertThrows(IllegalArgumentException.class, () -> new FixedAmountVoucher(UUID.randomUUID(), -100));
     }
+
+    @Test
+    @DisplayName("디스카운트 된 금액은 마이너스가 될 수 없다.")
+    @Disabled
+    void testMinusDiscountedAmount() {
+        FixedAmountVoucher fixedAmountVoucher = new FixedAmountVoucher(UUID.randomUUID(), 1000);
+        assertEquals(0, fixedAmountVoucher.discount(900));
+    }
 }

@@ -19,6 +19,7 @@ public class FixedAmountVoucher implements Voucher{
     }
 
     public long discount(long beforeDiscount){
-        return beforeDiscount - amount;
+        long discountAmount = beforeDiscount - amount;
+        return discountAmount<0?0:discountAmount;
     }
 }
