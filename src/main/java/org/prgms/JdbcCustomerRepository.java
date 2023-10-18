@@ -1,5 +1,6 @@
 package org.prgms;
 
+import java.nio.ByteBuffer;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -72,6 +73,31 @@ public class JdbcCustomerRepository {
         return names;
     }
 
+    public List<UUID> findAllIds(){
+        List<UUID> uuids = new ArrayList<>();
+
+        try(
+            Connection connection = DriverManager.getConnection("jdbc:mysql://localhost/order_mgmt", "root", "0000");
+            PreparedStatement statement = connection.prepareStatement(SELECT_ALL_SQL);          //prepareStatement -> SQL injection 방지
+        ) {
+            try(ResultSet resultSet = statement.executeQuery()){
+                while(resultSet.next()){
+                    String customerName = resultSet.getString("name");
+                    //get한 UUID의 값의 버전을 바꾸어 줌
+                    UUID customerId = toUUID(resultSet.getBytes("customer_id"));
+                    LocalDateTime createAt = resultSet.getTimestamp("create_at").toLocalDateTime();
+//                    logger.info("customer id -> {}, name -> {}, created_at -> {}", customerId, customerName, createAt);
+                    uuids.add(customerId);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            logger.error("connection closing 하는 동안 error", e);
+        }
+
+        return uuids;
+    }
+
     //insert Query
     public int insertCustomer(UUID customerId, String name, String email){
         try(
@@ -119,6 +145,11 @@ public class JdbcCustomerRepository {
         return 0;
     }
 
+    static UUID toUUID(byte[] bytes){
+        ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
+        return new UUID(byteBuffer.getLong(), byteBuffer.getLong());
+    }
+
     public static void main(String[] args){
         JdbcCustomerRepository jdbcCustomerRepository = new JdbcCustomerRepository();
 
@@ -127,13 +158,12 @@ public class JdbcCustomerRepository {
         logger.info("deleted count -> {}", deleteRowCount);
 
         //insert
-        jdbcCustomerRepository.insertCustomer(UUID.randomUUID(), "new-user", "new-user@gmail.com");
-        UUID customer2 = UUID.randomUUID();
-        jdbcCustomerRepository.insertCustomer(customer2, "new-user2", "new-user2@gmail.com");
-        jdbcCustomerRepository.findAllName().forEach(v -> logger.info("Found name : {}", v));
+        UUID customerId = UUID.randomUUID();
+        logger.info("created customerId -> {}", customerId);
 
-        //update
-        jdbcCustomerRepository.updateCustomerName(customer2, "updated-user2");
-        jdbcCustomerRepository.findAllName().forEach(v -> logger.info("Found name : {}", v));
+        //다음과 같이 insert 후 select 시 생뚱맞은 id가 조회된다.
+        //이유는 조회 시 UUID 버전이 달라짐 (4->3 DownGrade)
+        jdbcCustomerRepository.insertCustomer(customerId, "new-user", "new-user@gmail.com");
+        jdbcCustomerRepository.findAllIds().forEach(i -> logger.info("Found customerId : {}", i));
     }
 }
