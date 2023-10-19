@@ -15,6 +15,7 @@ import java.util.UUID;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -83,6 +84,12 @@ public class CustomerJdbcRepository implements CustomerRepository {
         }
     }
 
+    @Override
+    public int count() {
+        //queryForObject() 메서드는 기본적으로 단건을 조회할 때 사용하는 메서드
+        return jdbcTemplate.queryForObject("select count(*) from customers", Integer.class);
+    }
+
     //JdbcTemplate은 Jdbc에서 중첩된 코드를 템플릿화
     //다음과 같이 한 줄로 변화
     @Override
@@ -116,24 +123,32 @@ public class CustomerJdbcRepository implements CustomerRepository {
 
     @Override
     public Optional<Customer> findById(UUID customerId) {
-        List<Customer> allCustomers = new ArrayList<>();
-
-        try(
-            Connection connection = DriverManager.getConnection("jdbc:mysql://localhost/order_mgmt", "root", "0000");
-            PreparedStatement statement = connection.prepareStatement("select * from customers WHERE customer_id = UUID_TO_BIN(?)");          //prepareStatement -> SQL injection 방지
-        ) {
-            statement.setBytes(1, customerId.toString().getBytes());
-            try(ResultSet resultSet = statement.executeQuery()){
-                while(resultSet.next()){
-                    mapToCustomer(resultSet, allCustomers);
-                }
-            }
-        } catch (SQLException e) {
-            logger.error("Gor error while closing connection", e);
-            throw new RuntimeException(e);
+        try{        //queryForObject() 메서드는 기본적으로 단건을 조회할 때 사용하는 메서드
+            return Optional.ofNullable(jdbcTemplate.queryForObject("select * from customers Where customer_id = UUID_TO_BIN(?)",
+                customerRowMapper,
+                customerId.toString().getBytes()));
+        } catch(EmptyResultDataAccessException e){
+            logger.error("Got empty result", e);
+            return Optional.empty();
         }
-
-        return allCustomers.stream().findFirst();
+//        List<Customer> allCustomers = new ArrayList<>();
+//
+//        try(
+//            Connection connection = DriverManager.getConnection("jdbc:mysql://localhost/order_mgmt", "root", "0000");
+//            PreparedStatement statement = connection.prepareStatement("select * from customers WHERE customer_id = UUID_TO_BIN(?)");          //prepareStatement -> SQL injection 방지
+//        ) {
+//            statement.setBytes(1, customerId.toString().getBytes());
+//            try(ResultSet resultSet = statement.executeQuery()){
+//                while(resultSet.next()){
+//                    mapToCustomer(resultSet, allCustomers);
+//                }
+//            }
+//        } catch (SQLException e) {
+//            logger.error("Gor error while closing connection", e);
+//            throw new RuntimeException(e);
+//        }
+//
+//        return allCustomers.stream().findFirst();
     }
 
     @Override

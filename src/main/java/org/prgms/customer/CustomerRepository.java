@@ -10,6 +10,8 @@ public interface CustomerRepository {
 
     Customer update(Customer customer);
 
+    int count();
+
     List<Customer> findAll();
 
     Optional<Customer> findById(UUID customerId);
