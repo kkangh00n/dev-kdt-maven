@@ -116,4 +116,20 @@ class CustomerJdbcRepositoryTest {
         Optional<Customer> unknown = customerJdbcRepository.findByName("unknown-user@gmail.com");
         assertThat(unknown.isEmpty(), is(true));
     }
+
+    @Test
+    @Order(6)
+    @DisplayName("고객을 수정할 수 있다.")
+    void testUpdate() {
+        newCustomer.changeName("updated-user");
+        customerJdbcRepository.update(newCustomer);
+
+        List<Customer> all = customerJdbcRepository.findAll();
+        assertThat(all, hasSize(1));
+        assertThat(all, everyItem(samePropertyValuesAs(newCustomer)));
+
+        Optional<Customer> retrievedCustomer = customerJdbcRepository.findById(newCustomer.getCustomerId());
+        assertThat(retrievedCustomer.isEmpty(), is(false));
+        assertThat(retrievedCustomer.get(), samePropertyValuesAs(newCustomer));
+    }
 }

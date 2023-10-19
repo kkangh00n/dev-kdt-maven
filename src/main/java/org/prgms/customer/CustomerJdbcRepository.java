@@ -49,7 +49,21 @@ public class CustomerJdbcRepository implements CustomerRepository {
 
     @Override
     public Customer update(Customer customer) {
-        return null;
+        try(
+            Connection connection = dataSource.getConnection();
+            PreparedStatement statement = connection.prepareStatement("UPDATE customers SET name = ?, email = ?, last_login_at = ? where customer_id = UUID_TO_BIN(?)");
+        ) {
+            statement.setString(1, customer.getName());
+            statement.setString(2, customer.getEmail());
+            statement.setTimestamp(3, customer.getLastLoginAt()!=null ? Timestamp.valueOf(customer.getLastLoginAt()):null);
+            statement.setBytes(4, customer.getCustomerId().toString().getBytes());
+            int executeUpdate = statement.executeUpdate();
+            if(executeUpdate!=1) throw new RuntimeException("Nothing was inserted");
+            return customer;
+        } catch (SQLException e) {
+            logger.error("connection closing 하는 동안 error", e);
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
