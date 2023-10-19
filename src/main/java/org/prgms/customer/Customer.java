@@ -11,9 +11,17 @@ public class Customer {
     private LocalDateTime lastLoginAt;
     private final LocalDateTime createdAt;
 
+    public Customer(UUID customerId, String name, String email, LocalDateTime createdAt) {
+        validatedName(name);
+        this.customerId = customerId;
+        this.name = name;
+        this.email = email;
+        this.createdAt = createdAt;
+    }
     public Customer(UUID customerId, String name, String email,LocalDateTime lastLoginAt, LocalDateTime createdAt) {
         validatedName(name);
         this.customerId = customerId;
+        this.name = name;
         this.email = email;
         this.lastLoginAt = lastLoginAt;
         this.createdAt = createdAt;

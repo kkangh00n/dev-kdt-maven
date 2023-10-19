@@ -3,7 +3,10 @@ package org.prgms.customer;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.zaxxer.hikari.HikariDataSource;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import javax.sql.DataSource;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -58,5 +61,37 @@ class CustomerJdbcRepositoryTest {
     void testFindAll() {
         List<Customer> customers = customerJdbcRepository.findAll();
         assertThat(customers.isEmpty(), is(false));
+    }
+
+    @Test
+    @DisplayName("이름으로 고객을 조회할 수 있다.")
+    void testFindByName() {
+        Optional<Customer> customer = customerJdbcRepository.findByName("tester00");
+        assertThat(customer.isEmpty(), is(false));
+
+        Optional<Customer> unknown = customerJdbcRepository.findByName("unknown-user");
+        assertThat(unknown.isEmpty(), is(true));
+    }
+
+    @Test
+    @DisplayName("이메일로 고객을 조회할 수 있다.")
+    void testFindByEmail() {
+        Optional<Customer> customer = customerJdbcRepository.findByEmail("test00@gmail.com");
+        assertThat(customer.isEmpty(), is(false));
+
+        Optional<Customer> unknown = customerJdbcRepository.findByName("unknown-user@gmail.com");
+        assertThat(unknown.isEmpty(), is(true));
+    }
+
+    @Test
+    @DisplayName("고객을 추가할 수 있다.")
+    void testInsert() {
+        customerJdbcRepository.deleteAll();
+        Customer newCustomer = new Customer(UUID.randomUUID(), "test-user", "test-user1@gmail.com", LocalDateTime.now());
+        customerJdbcRepository.insert(newCustomer);
+
+        Optional<Customer> retrievedCustomer = customerJdbcRepository.findById(newCustomer.getCustomerId());
+        assertThat(retrievedCustomer.isEmpty(), is(false));
+        assertThat(retrievedCustomer.get(), samePropertyValuesAs(newCustomer));
     }
 }
