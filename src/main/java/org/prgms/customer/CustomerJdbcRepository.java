@@ -15,6 +15,8 @@ import java.util.UUID;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -24,8 +26,23 @@ public class CustomerJdbcRepository implements CustomerRepository {
 
     private final DataSource dataSource;
 
-    public CustomerJdbcRepository(DataSource dataSource) {
+    //JdbcTemplate 추가
+    private final JdbcTemplate jdbcTemplate;
+
+    private static final RowMapper<Customer> customerRowMapper = (resultSet, i) -> {
+        String customerName = resultSet.getString("name");
+        String email = resultSet.getString("email");
+        UUID customerId = toUUID(resultSet.getBytes("customer_id"));
+        LocalDateTime lastLoginAt =
+            resultSet.getTimestamp("last_login_at") != null ? resultSet.getTimestamp(
+                "last_login_at").toLocalDateTime() : null;
+        LocalDateTime createdAt = resultSet.getTimestamp("created_at").toLocalDateTime();
+        return new Customer(customerId, customerName, email, lastLoginAt, createdAt);
+    };
+
+    public CustomerJdbcRepository(DataSource dataSource, JdbcTemplate jdbcTemplate) {
         this.dataSource = dataSource;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
@@ -66,22 +83,25 @@ public class CustomerJdbcRepository implements CustomerRepository {
         }
     }
 
+    //JdbcTemplate은 Jdbc에서 중첩된 코드를 템플릿화
+    //다음과 같이 한 줄로 변화
     @Override
     public List<Customer> findAll() {
-        List<Customer> allCustomers = new ArrayList<>();
-        try(
-            Connection connection = dataSource.getConnection();
-            PreparedStatement statement = connection.prepareStatement("select * from customers");
-            ResultSet resultSet = statement.executeQuery();
-            ) {
-            while(resultSet.next()){
-                mapToCustomer(resultSet, allCustomers);
-            }
-        } catch (SQLException e) {
-            logger.error("Gor error while closing connection", e);
-            throw new RuntimeException(e);
-        }
-        return allCustomers;
+        return jdbcTemplate.query("select * from customers", customerRowMapper);
+//        List<Customer> allCustomers = new ArrayList<>();
+//        try(
+//            Connection connection = dataSource.getConnection();
+//            PreparedStatement statement = connection.prepareStatement("select * from customers");
+//            ResultSet resultSet = statement.executeQuery();
+//        ) {
+//            while(resultSet.next()){
+//                mapToCustomer(resultSet, allCustomers);
+//            }
+//        } catch (SQLException e) {
+//            logger.error("Gor error while closing connection", e);
+//            throw new RuntimeException(e);
+//        }
+//        return allCustomers;
     }
 
     private static void mapToCustomer(ResultSet resultSet, List<Customer> allCustomers) throws SQLException {

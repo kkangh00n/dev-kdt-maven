@@ -21,6 +21,7 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.hamcrest.MatcherAssert.*;
@@ -48,9 +49,14 @@ class CustomerJdbcRepositoryTest {
                 .password("0000")
                 .type(HikariDataSource.class) //DB Connection pool -> HikariCP
                 .build();
-            dataSource.setMaximumPoolSize(1000);    //최대 Connection pool -> 1000개
-            dataSource.setMinimumIdle(100);         //기본 100개로 시작하여 동작
+//            dataSource.setMaximumPoolSize(1000);    //최대 Connection pool -> 1000개
+//            dataSource.setMinimumIdle(100);         //기본 100개로 시작하여 동작
             return dataSource;
+        }
+
+        @Bean
+        public JdbcTemplate jdbcTemplate(DataSource dataSource){
+            return new JdbcTemplate(dataSource);
         }
     }
 
