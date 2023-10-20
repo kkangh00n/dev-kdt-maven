@@ -12,8 +12,10 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import org.prgms.customer.Customer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cglib.core.Local;
 
 public class JdbcCustomerRepository {
     private static final Logger logger = LoggerFactory.getLogger(JdbcCustomerRepository.class);
@@ -85,7 +87,7 @@ public class JdbcCustomerRepository {
                     String customerName = resultSet.getString("name");
                     //get한 UUID의 값의 버전을 바꾸어 줌
                     UUID customerId = toUUID(resultSet.getBytes("customer_id"));
-                    LocalDateTime createAt = resultSet.getTimestamp("create_at").toLocalDateTime();
+                    LocalDateTime createdAt = resultSet.getTimestamp("created_at").toLocalDateTime();
 //                    logger.info("customer id -> {}, name -> {}, created_at -> {}", customerId, customerName, createAt);
                     uuids.add(customerId);
                 }
@@ -145,6 +147,46 @@ public class JdbcCustomerRepository {
         return 0;
     }
 
+    public void transactionTest(Customer customer){
+        String updateNameSql = "UPDATE customers SET name = ? WHERE customer_id = UUID_TO_BIN(?)";
+        String updateEmailSql = "UPDATE customers SET email = ? WHERE customer_id = UUID_TO_BIN(?)";
+
+        Connection connection = null;
+        try{
+            connection = DriverManager.getConnection("jdbc:mysql://localhost/order_mgmt", "root", "0000");
+            //트랜잭션 설정
+            connection.setAutoCommit(false);
+            try(
+                PreparedStatement updateNameStatement = connection.prepareStatement(updateNameSql);
+                PreparedStatement updateEmailStatement = connection.prepareStatement(updateEmailSql)
+            ){
+                updateNameStatement.setString(1, customer.getName());
+                updateNameStatement.setBytes(2, customer.getCustomerId().toString().getBytes());
+                updateNameStatement.executeUpdate();
+
+                updateEmailStatement.setString(1, customer.getName());
+                updateEmailStatement.setBytes(2, customer.getCustomerId().toString().getBytes());
+                updateNameStatement.executeUpdate();
+                //로직이 모두 성공하면 commit
+                connection.setAutoCommit(true);
+            }
+        } catch (SQLException e) {
+            if (connection!=null){
+                try{
+                    //로직이 중간에 실패하면 rollback
+                    connection.rollback();
+                    connection.close();
+                }catch (SQLException e2){
+                    logger.error("connection closing 하는 동안 error", e2);
+                    throw new RuntimeException(e);
+                }
+            }
+            logger.error("connection closing 하는 동안 error", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+
     static UUID toUUID(byte[] bytes){
         ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
         return new UUID(byteBuffer.getLong(), byteBuffer.getLong());
@@ -153,17 +195,21 @@ public class JdbcCustomerRepository {
     public static void main(String[] args){
         JdbcCustomerRepository jdbcCustomerRepository = new JdbcCustomerRepository();
 
-        //delete
-        int deleteRowCount = jdbcCustomerRepository.deleteAllCustomers();
-        logger.info("deleted count -> {}", deleteRowCount);
+        jdbcCustomerRepository.transactionTest(
+            new Customer(UUID.fromString("74d2249f-b25f-4993-a037-c17f9b909e70"), "update_user", "new-user@gmail.com", LocalDateTime.now())
+        );
 
-        //insert
-        UUID customerId = UUID.randomUUID();
-        logger.info("created customerId -> {}", customerId);
-
-        //다음과 같이 insert 후 select 시 생뚱맞은 id가 조회된다.
-        //이유는 조회 시 UUID 버전이 달라짐 (4->3 DownGrade)
-        jdbcCustomerRepository.insertCustomer(customerId, "new-user", "new-user@gmail.com");
-        jdbcCustomerRepository.findAllIds().forEach(i -> logger.info("Found customerId : {}", i));
+//        //delete
+//        int deleteRowCount = jdbcCustomerRepository.deleteAllCustomers();
+//        logger.info("deleted count -> {}", deleteRowCount);
+//
+//        //insert
+//        UUID customerId = UUID.randomUUID();
+//        logger.info("created customerId -> {}", customerId);
+//
+//        //다음과 같이 insert 후 select 시 생뚱맞은 id가 조회된다.
+//        //이유는 조회 시 UUID 버전이 달라짐 (4->3 DownGrade)
+//        jdbcCustomerRepository.insertCustomer(customerId, "new-user2", "new-user2@gmail.com");
+//        jdbcCustomerRepository.findAllIds().forEach(i -> logger.info("Found customerId : {}", i));
     }
 }
