@@ -1,7 +1,8 @@
 package org.prgms.customer;
 
-import static org.junit.jupiter.api.Assertions.*;
-
+import com.wix.mysql.EmbeddedMysql;
+import com.wix.mysql.config.Charset;
+import com.wix.mysql.config.MysqldConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.Optional;
 import java.util.UUID;
 import javax.sql.DataSource;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -24,8 +26,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+import static com.wix.mysql.ScriptResolver.classPathScripts;
+import static com.wix.mysql.distribution.Version.v8_0_11;
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
+import static com.wix.mysql.EmbeddedMysql.anEmbeddedMysql;
+import static com.wix.mysql.ScriptResolver.classPathScript;
+import static com.wix.mysql.config.MysqldConfig.aMysqldConfig;
 
 @SpringJUnitConfig
 //해당 클래스의 인스턴스가 하나! -> @BeforeAll을 static 없이 작성 가능
@@ -44,9 +51,9 @@ class CustomerJdbcRepositoryTest {
         @Bean
         public DataSource dataSource(){
             HikariDataSource dataSource = DataSourceBuilder.create()
-                .url("jdbc:mysql://localhost/order_mgmt")
-                .username("root")
-                .password("0000")
+                .url("jdbc:mysql://localhost:2215/test-order_mgmt")
+                .username("test")
+                .password("test1234!")
                 .type(HikariDataSource.class) //DB Connection pool -> HikariCP
                 .build();
 //            dataSource.setMaximumPoolSize(1000);    //최대 Connection pool -> 1000개
@@ -68,11 +75,24 @@ class CustomerJdbcRepositoryTest {
 
     Customer newCustomer;
 
+    EmbeddedMysql embeddedMysql;
+
     //Test 전 설정
     @BeforeAll
     void setUp(){
         newCustomer = new Customer(UUID.randomUUID(), "test-user", "test1-user@gmail.com", LocalDateTime.now());
-        customerJdbcRepository.deleteAll();
+
+        MysqldConfig mysqldConfig = aMysqldConfig(v8_0_11)
+            .withCharset(Charset.UTF8)
+            .withPort(2215)
+            .withUser("test", "test1234!")
+            .withTimeZone("Asia/Seoul")
+            .build();
+
+        embeddedMysql = EmbeddedMysql.anEmbeddedMysql(mysqldConfig)
+            .addSchema("test-order_mgmt", classPathScripts("schema.sql"))
+            .start();
+//        customerJdbcRepository.deleteAll();       //DB가 띄워지면서 데이터 초기화
     }
 
     @Test
