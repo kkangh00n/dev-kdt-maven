@@ -14,11 +14,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -32,6 +35,8 @@ import static org.hamcrest.Matchers.*;
 //OrderAnnotation을 이용하여 순서 보장
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class CustomerJdbcRepositoryTest {
+
+    private Logger logger = LoggerFactory.getLogger(CustomerJdbcRepositoryTest.class);
 
     //DataSource 설정
     @Configuration
@@ -90,7 +95,11 @@ class CustomerJdbcRepositoryTest {
     @Order(2)
     @DisplayName("고객을 추가할 수 있다.")
     void testInsert() {
-        customerJdbcRepository.insert(newCustomer);
+        try {
+            customerJdbcRepository.insert(newCustomer);
+        } catch(BadSqlGrammarException e){
+            logger.error("BadSqlGrammarException error code -> {}", e.getSQLException().getErrorCode(), e);
+        }
 
         Optional<Customer> retrievedCustomer = customerJdbcRepository.findById(newCustomer.getCustomerId());
         assertThat(retrievedCustomer.isEmpty(), is(false));

@@ -61,7 +61,8 @@ public class CustomerJdbcRepository implements CustomerRepository {
     @Override
     public Customer insert(Customer customer) {
         int update = jdbcTemplate.update(
-            "INSERT INTO customers(customer_id, name, email, created_at) VALUES (UUID_TO_BIN(:customerId), :name, :email, :createdAt)",
+            //DataAccessException
+            "INSERT INTO customers(customer_id, name, email, createad_at) VALUES (UUID_TO_BIN(:customerId), :name, :email, :createdAt)",
             toParamMap(customer));
         if(update!=1) throw new RuntimeException("Nothing was inserted");
         return customer;
