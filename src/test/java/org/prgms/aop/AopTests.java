@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
@@ -20,6 +21,7 @@ public class AopTests {
 
     //aop 클래스 파일 bean 등록
     @Configuration
+    @EnableAspectJAutoProxy
     @ComponentScan(basePackages = {"org.prgms.voucher", "org.prgms.aop"})
     static class Config{
     }
