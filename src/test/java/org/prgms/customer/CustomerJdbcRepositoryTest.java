@@ -162,24 +162,6 @@ class CustomerJdbcRepositoryTest {
     @Order(7)
     @DisplayName("트랜잭션 테스트")
     void testTransaction() {
-        //기존 고객
-        Optional<Customer> prevOne = customerJdbcRepository.findById(newCustomer.getCustomerId());
-        assertThat(prevOne.isEmpty(), is(false));
 
-        //새로운 고객 저장
-        Customer newOne = new Customer(UUID.randomUUID(), "a", "a.@gmail.com", LocalDateTime.now());
-        Customer insert = customerJdbcRepository.insert(newOne);
-
-        try {
-            //이전 id를 전달하여 예외를 기대 -> update 되지 않고 transaction
-            customerJdbcRepository.testTransaction(
-                new Customer(insert.getCustomerId(), "b", prevOne.get().getEmail(), newOne.getCreatedAt())
-            );
-        } catch (DataAccessException e){
-
-        }
-        Optional<Customer> maybeNewOne = customerJdbcRepository.findById(insert.getCustomerId());
-        assertThat(maybeNewOne.isEmpty(), is(false));
-        assertThat(maybeNewOne.get(), samePropertyValuesAs(newOne));
     }
 }
