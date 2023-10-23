@@ -157,11 +157,4 @@ class CustomerJdbcRepositoryTest {
         assertThat(retrievedCustomer.isEmpty(), is(false));
         assertThat(retrievedCustomer.get(), samePropertyValuesAs(newCustomer));
     }
-
-    @Test
-    @Order(7)
-    @DisplayName("트랜잭션 테스트")
-    void testTransaction() {
-
-    }
 }
