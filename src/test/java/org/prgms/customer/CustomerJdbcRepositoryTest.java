@@ -21,7 +21,9 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
@@ -61,6 +63,12 @@ class CustomerJdbcRepositoryTest {
         @Bean
         public NamedParameterJdbcTemplate namedParameterJdbcTemplate(JdbcTemplate jdbcTemplate){
             return new NamedParameterJdbcTemplate(jdbcTemplate);
+        }
+
+        //트랜잭션 매니저 bean 등록
+        @Bean
+        public PlatformTransactionManager platformTransactionManager(DataSource dataSource){
+            return new DataSourceTransactionManager(dataSource);
         }
     }
 
@@ -141,5 +149,28 @@ class CustomerJdbcRepositoryTest {
         Optional<Customer> retrievedCustomer = customerJdbcRepository.findById(newCustomer.getCustomerId());
         assertThat(retrievedCustomer.isEmpty(), is(false));
         assertThat(retrievedCustomer.get(), samePropertyValuesAs(newCustomer));
+    }
+
+    @Test
+    @Order(7)
+    @DisplayName("트랜잭션 테스트")
+    void testTransaction() {
+        //기존 고객
+        Optional<Customer> prevOne = customerJdbcRepository.findById(newCustomer.getCustomerId());
+        assertThat(prevOne.isEmpty(), is(false));
+
+        //새로운 고객 저장
+        Customer newOne = new Customer(UUID.randomUUID(), "a", "a.@gmail.com", LocalDateTime.now());
+        Customer insert = customerJdbcRepository.insert(newOne);
+
+        //이전 id를 전달하여 예외를 기대 -> update 되지 않고 transaction
+        customerJdbcRepository.testTransaction(
+            new Customer(insert.getCustomerId(), "b", prevOne.get().getEmail(), newOne.getCreatedAt())
+        );
+
+        Optional<Customer> maybeNewOne = customerJdbcRepository.findById(insert.getCustomerId());
+
+        assertThat(maybeNewOne.isEmpty(), is(false));
+        assertThat(maybeNewOne.get(), samePropertyValuesAs(newOne));
     }
 }

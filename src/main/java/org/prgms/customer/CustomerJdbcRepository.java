@@ -1,28 +1,25 @@
 package org.prgms.customer;
 
 import java.nio.ByteBuffer;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 @Repository
 public class CustomerJdbcRepository implements CustomerRepository {
@@ -32,6 +29,7 @@ public class CustomerJdbcRepository implements CustomerRepository {
     //NamedParameterJdbcTemplate 추가
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
+    private final PlatformTransactionManager transactionManager;
     private static final RowMapper<Customer> customerRowMapper = (resultSet, i) -> {
         String customerName = resultSet.getString("name");
         String email = resultSet.getString("email");
@@ -43,8 +41,9 @@ public class CustomerJdbcRepository implements CustomerRepository {
         return new Customer(customerId, customerName, email, lastLoginAt, createdAt);
     };
 
-    public CustomerJdbcRepository(NamedParameterJdbcTemplate jdbcTemplate) {
+    public CustomerJdbcRepository(NamedParameterJdbcTemplate jdbcTemplate, PlatformTransactionManager transactionManager) {
         this.jdbcTemplate = jdbcTemplate;
+        this.transactionManager = transactionManager;
     }
 
     //customer의 정보를 map에 담아 반환
@@ -119,6 +118,21 @@ public class CustomerJdbcRepository implements CustomerRepository {
         } catch (EmptyResultDataAccessException e){
             logger.error("Got empty result", e);
             return Optional.empty();
+        }
+    }
+
+    public void testTransaction(Customer customer){
+        //트랜잭션 갖고옴
+        TransactionStatus transaction = transactionManager.getTransaction(new DefaultTransactionDefinition());
+        try{
+            jdbcTemplate.update("UPDATE customers SET name = :name WHERE customer_id = UUID_TO_BIN(:customerId)", toParamMap(customer));
+            jdbcTemplate.update("UPDATE customers SET email = :email WHERE customer_id = UUID_TO_BIN(:customerId)", toParamMap(customer));
+            //성공하면 commit
+            transactionManager.commit(transaction);
+        }catch (DataAccessException e){
+            logger.error(e.getMessage());
+            //예외 발생하면 rollback
+            transactionManager.rollback(transaction);
         }
     }
 
