@@ -19,11 +19,13 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
@@ -69,6 +71,11 @@ class CustomerJdbcRepositoryTest {
         @Bean
         public PlatformTransactionManager platformTransactionManager(DataSource dataSource){
             return new DataSourceTransactionManager(dataSource);
+        }
+
+        @Bean
+        public TransactionTemplate transactionTemplate(PlatformTransactionManager platformTransactionManager){
+            return new TransactionTemplate(platformTransactionManager);
         }
     }
 
@@ -163,13 +170,15 @@ class CustomerJdbcRepositoryTest {
         Customer newOne = new Customer(UUID.randomUUID(), "a", "a.@gmail.com", LocalDateTime.now());
         Customer insert = customerJdbcRepository.insert(newOne);
 
-        //이전 id를 전달하여 예외를 기대 -> update 되지 않고 transaction
-        customerJdbcRepository.testTransaction(
-            new Customer(insert.getCustomerId(), "b", prevOne.get().getEmail(), newOne.getCreatedAt())
-        );
+        try {
+            //이전 id를 전달하여 예외를 기대 -> update 되지 않고 transaction
+            customerJdbcRepository.testTransaction(
+                new Customer(insert.getCustomerId(), "b", prevOne.get().getEmail(), newOne.getCreatedAt())
+            );
+        } catch (DataAccessException e){
 
+        }
         Optional<Customer> maybeNewOne = customerJdbcRepository.findById(insert.getCustomerId());
-
         assertThat(maybeNewOne.isEmpty(), is(false));
         assertThat(maybeNewOne.get(), samePropertyValuesAs(newOne));
     }
